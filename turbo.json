@@ -6,6 +6,10 @@
       "dependsOn": [],
       "outputs": []
     },
+    "config-backend": {
+      "dependsOn": [],
+      "outputs": []
+    },
     "build": {
       "dependsOn": ["^build"],
       "inputs": ["$TURBO_DEFAULT$", ".env*"],

@@ -4,6 +4,7 @@
   "scripts": {
     "deploy": "turbo run deploy",
     "build": "turbo run build",
+    "config-backend": "turbo run config-backend",
     "dev": "turbo run dev",
     "lint": "turbo run lint",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
