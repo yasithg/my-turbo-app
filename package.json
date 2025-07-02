@@ -2,6 +2,7 @@
   "name": "my-turbo-app",
   "private": true,
   "scripts": {
+    "deploy": "turbo run deploy",
     "build": "turbo run build",
     "dev": "turbo run dev",
     "lint": "turbo run lint",
