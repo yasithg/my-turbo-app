@@ -6,7 +6,8 @@
   "main": "index.js",
   "license": "MIT",
   "scripts": {
-    "deploy": "amplify pipeline-deploy --branch $AWS_BRANCH --app-id $AWS_APP_ID"
+    "deploy": "npx ampx pipeline-deploy --branch $AWS_BRANCH --app-id $AWS_APP_ID"
+    
   },
   "devDependencies": {
     "@aws-amplify/backend": "^1.16.1",
