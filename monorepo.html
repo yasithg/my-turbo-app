@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Turbo Monorepo Explainer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chosen Palette: Calm Tech -->
+    <!-- Application Structure Plan: A tab-based single-page application is chosen over a linear slide format to allow users to freely explore concepts. The structure is thematic: 'Intro', 'Structure', 'How It Works', 'Example', 'Summary', and 'Detailed Explanation'. This non-linear approach enhances learning and reference by letting users jump to specific topics of interest. Key interactions include hover-to-reveal details on the file structure, tab-switching for `package.json` examples, and a step-by-step interactive flow diagram for the type-sharing example. This design prioritizes user-driven exploration over passive consumption. -->
+    <!-- Visualization & Content Choices: 
+        - Report Info: Monorepo vs. Separate Repos diagram. Goal: Compare. Viz: Two-column layout with HTML/CSS. Interaction: None. Justification: Clear visual distinction. Library: Tailwind CSS.
+        - Report Info: Folder Structure. Goal: Organize. Viz: Interactive HTML list. Interaction: Hover to show details. Justification: Turns a static diagram into an exploratory tool. Library: Tailwind, Vanilla JS.
+        - Report Info: package.json files. Goal: Compare/Inform. Viz: Tabbed component. Interaction: Click tabs to switch content. Justification: Saves space and allows direct comparison. Library: Tailwind, Vanilla JS.
+        - Report Info: Type Sharing Flow. Goal: Show a process. Viz: Step-by-step HTML/CSS flow diagram. Interaction: Button click to advance steps. Justification: Clarifies a complex data flow sequentially. Library: Tailwind, Vanilla JS.
+        - Report Info: Advantages/Disadvantages. Goal: Compare. Viz: Side-by-side lists. Interaction: None. Justification: Quick, scannable summary. Library: Tailwind.
+        - Report Info: Detailed Explanation (new). Goal: Inform/Explain. Viz: Textual content with pre-formatted ASCII diagrams and code blocks. Interaction: None (passive reading). Justification: Provides in-depth, linear explanation for users seeking more detail. Library: Tailwind, HTML <pre> tags.
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .nav-link {
+            transition: all 0.3s ease;
+        }
+        .nav-link.active {
+            background-color: #3b82f6; /* bg-blue-500 */
+            color: white;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        }
+        .content-section {
+            display: none;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        .content-section.active {
+            display: block;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .code-block {
+            background-color: #1e293b; /* slate-800 */
+            color: #e2e8f0; /* slate-200 */
+            padding: 1rem;
+            border-radius: 0.5rem;
+            font-family: 'Courier New', Courier, monospace;
+            white-space: pre-wrap;
+            font-size: 0.875rem;
+            overflow-x: auto; /* For horizontal scrolling of code blocks */
+        }
+        .tab-btn.active {
+            background-color: #3b82f6;
+            color: white;
+        }
+        .flow-step {
+            transition: all 0.5s ease-in-out;
+            opacity: 0.3;
+            border-color: #cbd5e1; /* slate-300 */
+        }
+        .flow-step.active {
+            opacity: 1;
+            border-color: #3b82f6; /* blue-500 */
+            transform: scale(1.05);
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+        }
+        .flow-arrow {
+            opacity: 0.3;
+            transition: all 0.5s ease-in-out;
+        }
+        .flow-arrow.active {
+            opacity: 1;
+        }
+        .ascii-diagram {
+            background-color: #f8fafc; /* slate-50 */
+            padding: 1rem;
+            border-radius: 0.5rem;
+            font-family: 'Courier New', Courier, monospace;
+            white-space: pre; /* Preserve whitespace exactly */
+            overflow-x: auto; /* Allow horizontal scrolling for diagrams */
+            font-size: 0.8rem;
+            line-height: 1.2;
+            border: 1px solid #e2e8f0; /* slate-200 */
+        }
+    </style>
+</head>
+<body class="bg-stone-50 text-slate-800">
+
+    <div class="container mx-auto p-4 md:p-8">
+        <header class="text-center mb-8">
+            <h1 class="text-4xl md:text-5xl font-bold text-slate-900">Interactive Turbo Monorepo Explainer</h1>
+            <p class="mt-2 text-slate-600">An interactive guide to modern code architecture.</p>
+        </header>
+
+        <nav class="flex flex-wrap justify-center gap-2 md:gap-4 mb-8">
+            <button data-section="intro" class="nav-link active py-2 px-4 rounded-full font-semibold bg-white shadow-sm border border-slate-200 hover:bg-blue-100">Intro</button>
+            <button data-section="structure" class="nav-link py-2 px-4 rounded-full font-semibold bg-white shadow-sm border border-slate-200 hover:bg-blue-100">Structure</button>
+            <button data-section="how-it-works" class="nav-link py-2 px-4 rounded-full font-semibold bg-white shadow-sm border border-slate-200 hover:bg-blue-100">How It Works</button>
+            <button data-section="example" class="nav-link py-2 px-4 rounded-full font-semibold bg-white shadow-sm border border-slate-200 hover:bg-blue-100">Example</button>
+            <button data-section="summary" class="nav-link py-2 px-4 rounded-full font-semibold bg-white shadow-sm border border-slate-200 hover:bg-blue-100">Summary</button>
+            <button data-section="detailed-explanation" class="nav-link py-2 px-4 rounded-full font-semibold bg-white shadow-sm border border-slate-200 hover:bg-blue-100">Detailed Explanation</button>
+        </nav>
+
+        <main id="content-container" class="bg-white p-6 md:p-8 rounded-2xl shadow-lg border border-slate-200">
+            
+            <!-- Section 1: Intro -->
+            <section id="intro" class="content-section active">
+                <h2 class="text-3xl font-bold mb-4">What is a Monorepo?</h2>
+                <p class="text-slate-600 mb-6">This section introduces the core concept of a monorepo. It contrasts this approach with traditional multi-repo setups and outlines the key motivations for adopting it, such as easier code sharing and faster builds.</p>
+                <div class="grid md:grid-cols-2 gap-8">
+                    <div>
+                        <h3 class="text-2xl font-semibold mb-4 text-center">Separate Repositories</h3>
+                        <div class="flex flex-col items-center gap-4">
+                            <div class="w-full max-w-xs p-4 bg-red-50 border border-red-200 rounded-lg text-center">Our Web App</div>
+                            <div class="w-full max-w-xs p-4 bg-red-50 border border-red-200 rounded-lg text-center">Our Mobile App</div>
+                             <div class="w-full max-w-xs p-4 bg-red-50 border border-red-200 rounded-lg text-center">Shared UI Code</div>
+                        </div>
+                         <p class="mt-4 text-slate-600">In a traditional setup, each project lives in its own isolated repository. Sharing code between them requires publishing packages, which can be slow and cumbersome.</p>
+                    </div>
+                    <div>
+                        <h3 class="text-2xl font-semibold mb-4 text-center">A Monorepo</h3>
+                        <div class="w-full p-4 bg-green-50 border border-green-200 rounded-lg">
+                            <p class="text-center font-bold mb-2">Our Main Repository</p>
+                            <div class="flex flex-col gap-2 p-2 bg-white rounded">
+                               <div class="p-3 border rounded">Our Web App</div>
+                               <div class="p-3 border rounded">Our Mobile App</div>
+                               <div class="p-3 border rounded">Our Shared Code</div>
+                            </div>
+                        </div>
+                        <p class="mt-4 text-slate-600">A monorepo holds all distinct but related projects in one place. This makes code easier to find, manage, and reuse across applications instantly.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Section 2: Structure -->
+            <section id="structure" class="content-section">
+                <h2 class="text-3xl font-bold mb-4">Our Turbo Monorepo Structure</h2>
+                <p class="text-slate-600 mb-6">Here you can explore the typical folder structure of our monorepo. This organization is key to keeping the project clean and scalable. Hover over any file or folder to see its purpose.</p>
+                <div class="bg-slate-50 p-6 rounded-lg font-mono text-sm relative">
+                    <ul class="space-y-1">
+                        <li class="group" data-tooltip="Our Applications"><span class="text-blue-600">📁 apps/</span>
+                            <ul class="pl-6 space-y-1">
+                                <li class="group" data-tooltip="Our Web App (e.g., Next.js)"><span class="text-blue-600">📁 web/</span>
+                                    <ul class="pl-6">
+                                        <li>📄 package.json</li>
+                                    </ul>
+                                </li>
+                                <li class="group" data-tooltip="Our Mobile App (e.g., React Native)"><span class="text-blue-600">📁 mobile/</span>
+                                     <ul class="pl-6">
+                                        <li>📄 package.json</li>
+                                    </ul>
+                                </li>
+                            </ul>
+                        </li>
+                        <li class="group" data-tooltip="Reusable Code Packages"><span class="text-green-600">📁 packages/</span>
+                            <ul class="pl-6 space-y-1">
+                                <li class="group" data-tooltip="Our Amplify Gen 2 Backend Code"><span class="text-green-600">📁 backend/</span></li>
+                                <li class="group" data-tooltip="Shared TypeScript Types (e.g., from Amplify)"><span class="text-green-600">📁 types/</span></li>
+                                <li class="group" data-tooltip="(Future) Shared UI Components"><span class="text-green-600">📁 ui/</span></li>
+                            </ul>
+                        </li>
+                        <li class="group" data-tooltip="Main Monorepo Configuration">📄 package.json</li>
+                        <li class="group" data-tooltip="Turbo's Build Configuration">📄 turbo.json</li>
+                    </ul>
+                    <div id="structure-tooltip" class="absolute hidden bg-slate-800 text-white text-xs rounded py-1 px-2 z-10 pointer-events-none"></div>
+                </div>
+            </section>
+
+            <!-- Section 3: How It Works -->
+            <section id="how-it-works" class="content-section">
+                <h2 class="text-3xl font-bold mb-4">How It Works: The Core Concepts</h2>
+                 <p class="text-slate-600 mb-6">This section breaks down the core mechanics that make the monorepo function. Explore the concepts of Workspaces, `package.json` roles, and dependency hoisting to understand the magic behind the scenes.</p>
+                
+                <div id="pkg-json-tabs" class="mb-8">
+                     <h3 class="text-2xl font-semibold mb-4">Understanding `package.json` Files</h3>
+                    <div class="flex border-b border-slate-200 mb-4">
+                        <button data-target="pkg-root" class="tab-btn p-3 font-medium -mb-px border-b-2 border-transparent hover:border-blue-500 hover:text-blue-600 active">Root</button>
+                        <button data-target="pkg-app" class="tab-btn p-3 font-medium -mb-px border-b-2 border-transparent hover:border-blue-500 hover:text-blue-600">App</button>
+                        <button data-target="pkg-package" class="tab-btn p-3 font-medium -mb-px border-b-2 border-transparent hover:border-blue-500 hover:text-blue-600">Package</button>
+                    </div>
+                    <div class="tab-content">
+                        <div id="pkg-root">
+                            <p class="mb-2 text-slate-600">The <strong>root `package.json`</strong> is the main control file. It defines workspaces and holds scripts and dev dependencies for the entire monorepo.</p>
+                            <div class="code-block">{
+  "name": "our-awesome-monorepo",
+  "private": true,
+  "scripts": { "build": "turbo run build" },
+  "devDependencies": { "turbo": "latest" },
+  "workspaces": [ "apps/*", "packages/*" ]
+}</div>
+                        </div>
+                        <div id="pkg-app" class="hidden">
+                            <p class="mb-2 text-slate-600">An <strong>app's `package.json`</strong> defines a runnable application. It depends on local packages using the `workspace:*` protocol.</p>
+                             <div class="code-block">{
+  "name": "web",
+  "dependencies": {
+    "next": "14",
+    "@repo/types": "workspace:*",
+    "@repo/backend": "workspace:*"
+  }
+}</div>
+                        </div>
+                        <div id="pkg-package" class="hidden">
+                            <p class="mb-2 text-slate-600">A <strong>package's `package.json`</strong> defines a reusable piece of code. It's given a unique name (like `@repo/backend`) so apps can depend on it.</p>
+                            <div class="code-block">{
+  "name": "@repo/backend",
+  "version": "0.1.0",
+  "main": "./src/index.ts",
+  "dependencies": {
+    "@aws-amplify/backend": "^1.0.0"
+  }
+}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid md:grid-cols-2 gap-8">
+                    <div>
+                        <h3 class="text-2xl font-semibold mb-4">Workspaces: The Glue</h3>
+                        <p class="text-slate-600 mb-4">Workspaces tell our package manager to look for dependencies locally inside the `packages` folder instead of downloading them. This "local linking" is what makes sharing instant.</p>
+                    </div>
+                    <div>
+                        <h3 class="text-2xl font-semibold mb-4">Hoisting: Saving Space</h3>
+                        <p class="text-slate-600 mb-4">The package manager "hoists" common dependencies to a single `node_modules` folder at the root. This reduces duplication, saves disk space, and ensures version consistency across the project.</p>
+                    </div>
+                </div>
+
+            </section>
+
+            <!-- Section 4: Example -->
+            <section id="example" class="content-section">
+                <h2 class="text-3xl font-bold mb-4">Example: Sharing Amplify Backend Types</h2>
+                <p class="text-slate-600 mb-6">This interactive diagram demonstrates one of the most powerful benefits of our monorepo: sharing auto-generated TypeScript types from our backend with all our frontend applications. Click "Next Step" to see how the data flows.</p>
+                
+                <div class="flex flex-col md:flex-row justify-around items-center gap-4 text-center mb-8" id="type-flow-diagram">
+                    <div id="flow-step-1" class="flow-step border-2 rounded-lg p-4 w-full md:w-1/4">
+                        <span class="text-2xl">📦</span>
+                        <h4 class="font-bold">1. Backend</h4>
+                        <p class="text-sm">Amplify generates types.</p>
+                    </div>
+                    
+                    <div id="flow-arrow-1" class="flow-arrow text-4xl font-light text-slate-400">→</div>
+
+                    <div id="flow-step-2" class="flow-step border-2 rounded-lg p-4 w-full md:w-1/4">
+                        <span class="text-2xl">📚</span>
+                        <h4 class="font-bold">2. Types Package</h4>
+                        <p class="text-sm">Exports the generated types.</p>
+                    </div>
+
+                    <div id="flow-arrow-2" class="flow-arrow text-4xl font-light text-slate-400">→</div>
+
+                    <div id="flow-step-3" class="flow-step border-2 rounded-lg p-4 w-full md:w-1/4">
+                        <span class="text-2xl">📱💻</span>
+                        <h4 class="font-bold">3. Apps</h4>
+                        <p class="text-sm">Web & Mobile import types.</p>
+                    </div>
+                </div>
+
+                <div class="text-center">
+                    <button id="type-flow-btn" class="bg-blue-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-600 transition">Start Flow</button>
+                </div>
+
+            </section>
+            
+            <!-- Section 5: Summary -->
+            <section id="summary" class="content-section">
+                 <h2 class="text-3xl font-bold mb-4">Summary: Pros & Cons</h2>
+                 <p class="text-slate-600 mb-6">Every architecture has trade-offs. This section provides a balanced overview of the key advantages and potential disadvantages of using a Turbo Monorepo, helping you understand why it's a great fit for our projects despite a small learning curve.</p>
+                 <div class="grid md:grid-cols-2 gap-8">
+                     <div class="bg-green-50 p-6 rounded-lg border border-green-200">
+                         <h3 class="text-2xl font-bold text-green-800 mb-4">✅ Advantages</h3>
+                         <ul class="space-y-2 list-inside text-green-900">
+                             <li><strong>Easy Code Sharing:</strong> Reuse logic across apps instantly.</li>
+                             <li><strong>Consistent Codebase:</strong> Enforce one style and quality bar.</li>
+                             <li><strong>Atomic Changes:</strong> Update multiple projects in one commit.</li>
+                             <li><strong>Simplified Dependencies:</strong> Less duplication, faster installs.</li>
+                             <li><strong>Faster Builds with Turbo:</b> Caches results and only rebuilds what's changed.</li>
+                             <li><strong>Better Collaboration:</strong> Easily navigate the entire project.</li>
+                         </ul>
+                     </div>
+                      <div class="bg-red-50 p-6 rounded-lg border border-red-200">
+                         <h3 class="text-2xl font-bold text-red-800 mb-4">❌ Disadvantages</h3>
+                         <ul class="space-y-2 list-inside text-red-900">
+                             <li><strong>Initial Setup:</strong> Can be more complex than single repos.</li>
+                             <li><strong>Larger Repository Size:</strong> Repo size grows with each project.</li>
+                             <li><strong>Learning Curve:</strong> Team needs to learn workspace concepts.</li>
+                             <li><strong>Potential for Interdependencies:</strong> Requires careful management.</li>
+                         </ul>
+                     </div>
+                 </div>
+            </section>
+
+            <!-- Section 6: Detailed Explanation -->
+            <section id="detailed-explanation" class="content-section">
+                <h2 class="text-3xl font-bold mb-4">Turbo Monorepo Architecture: A Deep Dive</h2>
+                <p class="text-slate-600 mb-6">This section provides a comprehensive, in-depth explanation of the Turbo Monorepo architecture, covering its fundamental concepts, structure, and operational details. It's designed for users who want to understand the underlying mechanics and benefits in detail.</p>
+
+                <h3 class="text-2xl font-bold mt-8 mb-4">What is a Monorepo?</h3>
+                <p class="text-slate-600 mb-4">Imagine all your related projects – your website, your mobile app, and shared code – living together in one big folder, instead of many separate small folders. That's a Monorepo!</p>
+                <p class="text-slate-600 mb-4">It's a single code repository that holds multiple distinct projects.</p>
+                <h4 class="text-xl font-semibold mb-2">Monorepo vs. Separate Repos</h4>
+                <pre class="ascii-diagram">
+              Monorepo                                 Separate Repos
+
+        +-------------------------+            +-----------------+    +-----------------+
+        |                         |            | Our Web App     |    | Our Mobile App  |
+        |  Our Main Repository    |            | (Repo 1)        |    | (Repo 2)        |
+        |                         |            +-----------------+    +-----------------+
+        | +---------------------+ |
+        | | Our Web App         | |
+        | +---------------------+ |
+        | +---------------------+ |
+        | | Our Mobile App      | |
+        | +---------------------+ |
+        | +---------------------+ |
+        | | Our Shared Code     | |
+        | +---------------------+ |
+        +-------------------------+
+                </pre>
+                <p class="text-slate-600 mb-4"><strong>Why are we using a Monorepo with Turbo?</strong></p>
+                <ul class="list-disc list-inside text-slate-600 mb-6">
+                    <li><strong>Everything in one place:</strong> Easier to find and manage code.</li>
+                    <li><strong>Share code easily:</strong> Reuse components, types, and logic.</li>
+                    <li><strong>Faster builds:</strong> Turbo makes our build process super efficient.</li>
+                </ul>
+
+                <h3 class="text-2xl font-bold mt-8 mb-4">Our Turbo Monorepo Structure</h3>
+                <p class="text-slate-600 mb-4">Here's how our monorepo is organized, built with Turbo as our powerful build system:</p>
+                <h4 class="text-xl font-semibold mb-2">Our Monorepo Folder Structure</h4>
+                <pre class="ascii-diagram">
+your-monorepo/
+├── apps/                                # Our Applications
+│   ├── web/                             # Our Web App (Next.js)
+│   │   └── package.json
+│   └── mobile/                          # Our Mobile App (React Native - Coming Soon!)
+│       └── package.json
+├── packages/                            # Reusable Code Packages
+│   ├── backend/                         # Our Amplify Gen 2 Backend Code
+│   │   └── package.json
+│   ├── types/                           # Shared TypeScript Types (e.g., from Amplify)
+│   │   └── package.json
+│   └── ui/                              # (Future) Shared UI Components
+│       └── package.json
+├── package.json                         # Main Monorepo Configuration
+├── turbo.json                           # Turbo's Build Configuration
+└── pnpm-workspace.yaml                  # Defines our Workspaces (if using pnpm)
+                </pre>
+                <ul class="list-disc list-inside text-slate-600 mb-6">
+                    <li><strong>apps/:</strong> Where our actual applications live (web, mobile).</li>
+                    <li><strong>packages/:</strong> Contains building blocks and shared code that our apps use.</li>
+                </ul>
+
+                <h3 class="text-2xl font-bold mt-8 mb-4">How Workspaces Work (The Magic Behind Sharing)</h3>
+                <p class="text-slate-600 mb-4">Workspaces are a feature of our package manager (like npm, yarn, or pnpm) that lets us manage multiple projects inside one repository. They act like a "local linking" system.</p>
+                <p class="text-slate-600 mb-4">Think of it like this:</p>
+                <p class="text-slate-600 mb-4">Instead of downloading <code class="bg-slate-100 px-1 py-0.5 rounded">@repo/backend</code> from the internet, workspaces tell our web app: "Hey, that <code class="bg-slate-100 px-1 py-0.5 rounded">@repo/backend</code> package you need? It's right here in our <code class="bg-slate-100 px-1 py-0.5 rounded">packages/backend</code> folder!"</p>
+                <h4 class="text-xl font-semibold mb-2">Workspace Linking</h4>
+                <pre class="ascii-diagram">
+              your-monorepo/
+              ├── apps/
+              │   ├── web/
+              │   │   └── package.json
+              │   │       (Needs "@repo/backend", "@repo/types")
+              │   └── mobile/
+              │       └── package.json
+              │           (Needs "@repo/backend", "@repo/types")
+              ├── packages/
+              │   ├── backend/
+              │   │   └── package.json (Name: "@repo/backend")
+              │   └── types/
+              │       └── package.json (Name: "@repo/types")
+              └── package.json
+                  (Lists all workspaces: "apps/*", "packages/*")
+
+    The root `package.json` tells the package manager where to find our "packages".
+    When `web` needs `@repo/backend`, it knows to look locally in `packages/backend`.
+                </pre>
+                <p class="text-slate-600 mb-6"><strong>Key Benefit:</strong> When you change something in <code class="bg-slate-100 px-1 py-0.5 rounded">packages/backend</code>, your <code class="bg-slate-100 px-1 py-0.5 rounded">apps/web</code> project instantly sees that change without any extra steps like publishing or manual linking.</p>
+
+                <h3 class="text-2xl font-bold mt-8 mb-4">Understanding Our package.json Files</h3>
+                <p class="text-slate-600 mb-4">Every project (app or package) in our monorepo has its own <code class="bg-slate-100 px-1 py-0.5 rounded">package.json</code> file, but they play different roles.</p>
+                
+                <h4 class="text-xl font-semibold mb-2">1. Root package.json (<code class="bg-slate-100 px-1 py-0.5 rounded">your-monorepo/package.json</code>)</h4>
+                <p class="text-slate-600 mb-2">This is the main control file for the entire monorepo.</p>
+                <div class="code-block">{
+  "name": "our-awesome-monorepo",
+  "version": "1.0.0",
+  "private": true, // IMPORTANT: Prevents accidental publishing to npm!
+  "scripts": {
+    "build": "turbo run build", // Runs 'build' script in all projects
+    "dev": "turbo run dev",     // Runs 'dev' script in all projects
+    "lint": "turbo run lint"
+  },
+  "devDependencies": {
+    "turbo": "latest"
+    // Other development tools used across the entire monorepo
+  },
+  "workspaces": [ // This tells our package manager where to find our projects
+    "apps/*",
+    "packages/*"
+  ]
+}</div>
+                
+                <h4 class="text-xl font-semibold mt-6 mb-2">2. App package.json (<code class="bg-slate-100 px-1 py-0.5 rounded">apps/web/package.json</code>)</h4>
+                <p class="text-slate-600 mb-2">This defines our web application and its specific needs.</p>
+                <div class="code-block">{
+  "name": "web",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build"
+  },
+  "dependencies": {
+    "react": "^18",
+    "next": "14",
+    "@repo/types": "workspace:*",   // &lt;-- We depend on our local 'types' package
+    "@repo/backend": "workspace:*"  // &lt;-- We depend on our local 'backend' package
+  },
+  "devDependencies": {
+    "typescript": "^5"
+  }
+}</div>
+                <p class="text-slate-600 mt-2 mb-4">"<code class="bg-slate-100 px-1 py-0.5 rounded">workspace:*</code>": This special syntax tells the package manager to use the version of <code class="bg-slate-100 px-1 py-0.5 rounded">@repo/types</code> or <code class="bg-slate-100 px-1 py-0.5 rounded">@repo/backend</code> found locally within our monorepo.</p>
+
+                <h4 class="text-xl font-semibold mt-6 mb-2">3. Package package.json (<code class="bg-slate-100 px-1 py-0.5 rounded">packages/backend/package.json</code>)</h4>
+                <p class="text-slate-600 mb-2">This defines our reusable backend code package.</p>
+                <div class="code-block">{
+  "name": "@repo/backend", // Unique name for our backend package
+  "version": "0.1.0",
+  "main": "./src/index.ts", // Where our main backend code starts
+  "types": "./src/index.ts", // Where TypeScript types for this package are
+  "scripts": {
+    "build": "tsc" // Or specific Amplify build commands
+  },
+  "dependencies": {
+    "@aws-amplify/backend": "^1.0.0"
+    // Other backend-specific dependencies
+  },
+  "devDependencies": {
+    "typescript": "^5"
+  }
+}</div>
+                <p class="text-slate-600 mt-2 mb-6">"<code class="bg-slate-100 px-1 py-0.5 rounded">name": "@repo/backend"</code>: We use a <code class="bg-slate-100 px-1 py-0.5 rounded">@repo/</code> prefix to clearly show these are internal monorepo packages.</p>
+
+                <h3 class="text-2xl font-bold mt-8 mb-4">How node_modules Work Here (Saving Space & Time!)</h3>
+                <p class="text-slate-600 mb-4">You might think every project gets its own huge <code class="bg-slate-100 px-1 py-0.5 rounded">node_modules</code> folder. But with workspaces, it's smarter!</p>
+                <h4 class="text-xl font-semibold mb-2">The "Hoisting" Principle:</h4>
+                <p class="text-slate-600 mb-4">When you run <code class="bg-slate-100 px-1 py-0.5 rounded">npm install</code> (or <code class="bg-slate-100 px-1 py-0.5 rounded">pnpm install</code>, <code class="bg-slate-100 px-1 py-0.5 rounded">yarn install</code>) at the root of our monorepo, the package manager tries to move as many common dependencies as possible up to the root <code class="bg-slate-100 px-1 py-0.5 rounded">node_modules</code> folder. This is called "hoisting."</p>
+                <h4 class="text-xl font-semibold mb-2">Hoisted node_modules Diagram</h4>
+                <pre class="ascii-diagram">
+your-monorepo/
+├── node_modules/         # The BIGGEST node_modules (shared dependencies)
+│   ├── react/            # Used by web, mobile
+│   ├── typescript/       # Used by web, mobile, backend, types
+│   ├── next/             # Used by web
+│   └── ... (many others)
+├── apps/
+│   ├── web/
+│   │   └── node_modules/ # SMALLER: Only unique dependencies not hoisted
+│   │       └── (e.g., a next.js plugin that needs a specific React version)
+│   └── mobile/
+│       └── node_modules/ # SMALLER: Only unique dependencies not hoisted
+│           └── (e.g., a react-native specific library)
+├── packages/
+│   ├── backend/
+│   │   └── node_modules/ # SMALLER: Only unique dependencies not hoisted
+│   └── types/
+│       └── (Often no node_modules, as it's just types)
+├── package.json
+└── ...
+                </pre>
+                <h4 class="text-xl font-semibold mb-2">Benefits of Hoisting:</h4>
+                <ul class="list-disc list-inside text-slate-600 mb-6">
+                    <li><strong>Less Disk Space:</strong> No duplicate copies of the same library.</li>
+                    <li><strong>Faster Installs:</strong> Dependencies are installed once at the root.</li>
+                    <li><strong>Consistency:</strong> All projects use the same version of common libraries, reducing bugs.</li>
+                </ul>
+
+                <h3 class="text-2xl font-bold mt-8 mb-4">Sharing Backend Types Between Web & Mobile Apps</h3>
+                <p class="text-slate-600 mb-4">This is one of the biggest advantages for us! Our Amplify Gen 2 backend generates TypeScript types, and we can easily share them with both our web and mobile apps.</p>
+                <h4 class="text-xl font-semibold mb-2">Our Strategy:</h4>
+                <ul class="list-disc list-inside text-slate-600 mb-4">
+                    <li><strong>Backend Generates Types:</strong> Our <code class="bg-slate-100 px-1 py-0.5 rounded">packages/backend</code> (Amplify Gen 2) will generate its TypeScript types (e.g., for GraphQL schemas, data models).</li>
+                    <li><strong>Dedicated Types Package:</strong> We'll have a special <code class="bg-slate-100 px-1 py-0.5 rounded">packages/types</code> package. This package will contain or reference the generated types from our backend. It's a central hub for all shared types.</li>
+                    <li><strong>Apps Use Types Package:</strong> Both <code class="bg-slate-100 px-1 py-0.5 rounded">apps/web</code> and <code class="bg-slate-100 px-1 py-0.5 rounded">apps/mobile</code> will simply depend on <code class="bg-slate-100 px-1 py-0.5 rounded">@repo/types</code>.</li>
+                </ul>
+                <h4 class="text-xl font-semibold mb-2">Type Sharing Flow Diagram</h4>
+                <pre class="ascii-diagram">
+              +---------------------+
+              | packages/backend    |
+              | (Amplify Gen 2)     |
+              |                     |
+              | 1. Generates Types  |
+              |    (e.g., src/graphql/types.ts)
+              +----------+----------+
+                         |
+                         V
+              +----------+----------+
+              | packages/types      |
+              | (e.g., src/index.ts)|
+              |  - Exports generated types from backend -
+              | package.json: "@repo/types"
+              +---------------------+
+                         |
+              +-----------+-----------+
+              |           |           |
+              V           V           V
++-----------+---+   +-----------+---+
+| apps/web      |   | apps/mobile   |
+| package.json: |   | package.json: |
+| "dependencies": { | "dependencies": { |
+|   "@repo/types": "workspace:*" |   "@repo/types": "workspace:*" |
+| }             | }             |
++---------------+   +---------------+
+                </pre>
+                <h4 class="text-xl font-semibold mb-2">How it works in code:</h4>
+                <p class="text-slate-600 mb-2">After building your backend and ensuring types are in <code class="bg-slate-100 px-1 py-0.5 rounded">packages/types</code>, you'd import them like this:</p>
+                <div class="code-block">// In apps/web/src/pages/index.tsx or apps/mobile/src/App.tsx
+import { type Todo } from '@repo/types'; // Assuming 'Todo' is a type generated by Amplify
+// ... use the 'Todo' type in your components or logic</div>
+                <p class="text-slate-600 mt-2 mb-6">This setup ensures that any changes to our backend data models are immediately reflected and type-checked in both our web and mobile applications, preventing many common errors!</p>
+
+                <h3 class="text-2xl font-bold mt-8 mb-4">Advantages of Our Turbo Monorepo</h3>
+                <p class="text-slate-600 mb-4">For a summary of advantages, please refer to the <button data-section="summary" class="nav-link inline-flex py-1 px-2 rounded-md font-semibold bg-blue-50 border border-blue-200 text-blue-700 hover:bg-blue-100">Summary</button> section.</p>
+                
+                <h3 class="text-2xl font-bold mt-8 mb-4">Disadvantages of Our Turbo Monorepo</h3>
+                <p class="text-slate-600 mb-4">For a summary of disadvantages, please refer to the <button data-section="summary" class="nav-link inline-flex py-1 px-2 rounded-md font-semibold bg-blue-50 border border-blue-200 text-blue-700 hover:bg-blue-100">Summary</button> section.</p>
+
+                <h3 class="text-2xl font-bold mt-8 mb-4">Questions?</h3>
+                <p class="text-slate-600">Feel free to explore the other sections or ask further questions!</p>
+            </section>
+        </main>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const navLinks = document.querySelectorAll('.nav-link');
+            const sections = document.querySelectorAll('.content-section');
+
+            navLinks.forEach(link => {
+                link.addEventListener('click', () => {
+                    const targetSection = link.getAttribute('data-section');
+
+                    navLinks.forEach(nav => nav.classList.remove('active'));
+                    link.classList.add('active');
+
+                    sections.forEach(section => {
+                        if (section.id === targetSection) {
+                            section.classList.add('active');
+                        } else {
+                            section.classList.remove('active');
+                        }
+                    });
+                });
+            });
+
+            // Structure Tooltip Logic
+            const structureItems = document.querySelectorAll('#structure [data-tooltip]');
+            const tooltip = document.getElementById('structure-tooltip');
+            structureItems.forEach(item => {
+                item.addEventListener('mouseenter', (e) => {
+                    tooltip.textContent = item.getAttribute('data-tooltip');
+                    tooltip.style.display = 'block';
+                    const rect = item.getBoundingClientRect();
+                    const containerRect = document.querySelector('#structure .bg-slate-50').getBoundingClientRect();
+                    tooltip.style.left = `${rect.left - containerRect.left + rect.width + 10}px`;
+                    tooltip.style.top = `${rect.top - containerRect.top}px`;
+                });
+                item.addEventListener('mouseleave', () => {
+                    tooltip.style.display = 'none';
+                });
+            });
+
+            // Package.json Tabs Logic
+            const tabButtons = document.querySelectorAll('#pkg-json-tabs .tab-btn');
+            const tabContents = document.querySelectorAll('#pkg-json-tabs .tab-content > div');
+
+            tabButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const targetId = button.getAttribute('data-target');
+                    tabButtons.forEach(btn => btn.classList.remove('active'));
+                    button.classList.add('active');
+                    tabContents.forEach(content => {
+                        if(content.id === targetId) {
+                            content.classList.remove('hidden');
+                        } else {
+                            content.classList.add('hidden');
+                        }
+                    });
+                });
+            });
+
+            // Type Sharing Flow Logic
+            const flowBtn = document.getElementById('type-flow-btn');
+            const flowSteps = document.querySelectorAll('.flow-step');
+            const flowArrows = document.querySelectorAll('.flow-arrow');
+            let currentStep = 0;
+
+            const updateFlow = () => {
+                flowSteps.forEach((step, index) => {
+                    if (index < currentStep) {
+                        step.classList.add('active');
+                    } else {
+                        step.classList.remove('active');
+                    }
+                });
+                flowArrows.forEach((arrow, index) => {
+                    if (index < currentStep - 1) {
+                        arrow.classList.add('active');
+                    } else {
+                        arrow.classList.remove('active');
+                    }
+                });
+
+                if (currentStep > flowSteps.length) {
+                    currentStep = 0;
+                    flowBtn.textContent = 'Start Flow';
+                    updateFlow();
+                } else if (currentStep > 0) {
+                    flowBtn.textContent = 'Next Step';
+                }
+                 if (currentStep === flowSteps.length) {
+                    flowBtn.textContent = 'Reset Flow';
+                }
+            };
+
+            flowBtn.addEventListener('click', () => {
+                currentStep++;
+                updateFlow();
+            });
+            
+            // Initial state
+            updateFlow();
+
+        });
+    </script>
+</body>
+</html>
